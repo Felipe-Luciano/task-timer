@@ -1,20 +1,56 @@
 import { Play } from "phosphor-react";
 import { CountDownContainer, FormContainer, HomeContainer, MinutesAmountInput, ProjectInput, Separator, StartCountDownButton } from "./styles";
+import { useForm } from "react-hook-form";
+
+interface NewCycleFormData {
+    task: string
+    minutesAmount: number
+}
 
 export function Home() {
+    const {register, handleSubmit, watch, reset} = useForm<NewCycleFormData>(
+        {
+            defaultValues: {
+                task: '',  
+            }
+        }
+    );
+
+    function handleCreateNewCycle(data: NewCycleFormData) {
+        console.log(data);
+        reset()
+    }
+
+    const task = watch('task')
+    const isSubmitDisabled = !task
+
     return(
         <HomeContainer>
-            <form >
+            <form onSubmit={handleSubmit(handleCreateNewCycle)}>
                 <FormContainer>
-                    <label htmlFor="projectName">Vou trabalhar em</label>
-                    <ProjectInput type="text" list="task-suggetions" id="projectName" placeholder="Dê um nome para o seu projeto"/>
+                    <label htmlFor="task">Vou trabalhar em</label>
+                    <ProjectInput 
+                        type="text" 
+                        list="task-suggetions" 
+                        id="task" 
+                        placeholder="Dê um nome para o seu projeto"
+                        {...register("task")}
+                    />
                     <datalist id="task-suggetions">
                         <option value="Projeto 1" />
                         <option value="Projeto 2" /> 
                         <option value="Projeto 3" />
                     </datalist>
                     <label htmlFor="minuteAmount">durante</label>
-                    <MinutesAmountInput type="number" id="minuteAmount" placeholder="00" step={5} min={5} max={60}/>
+                    <MinutesAmountInput 
+                        type="number" 
+                        id="minuteAmount" 
+                        placeholder="00" 
+                        step={5} 
+                        min={5} 
+                        max={60}
+                        {...register("minutesAmount", { valueAsNumber: true})}
+                    />
                     <span>minutos</span>
                 </FormContainer>
 
@@ -26,7 +62,7 @@ export function Home() {
                     <span>0</span>
                 </CountDownContainer>
 
-                <StartCountDownButton type="submit">
+                <StartCountDownButton disabled={isSubmitDisabled} type="submit">
                     < Play size={24}/> 
                     Começar
                 </StartCountDownButton>
