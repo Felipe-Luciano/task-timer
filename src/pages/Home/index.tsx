@@ -8,7 +8,7 @@ import { useContext } from "react";
 import { CreateNewCycleData, CycleContext } from "../../contexts/CyclesContext";
 
 export function Home() {
-    const { activeCycle, createNewCycle, interruptCyce} = useContext(CycleContext)
+    const { activeCycle, createNewCycle, interruptCurrentCycle} = useContext(CycleContext)
 
     const newCycleForm = useForm<CreateNewCycleData>(
         {
@@ -37,7 +37,7 @@ export function Home() {
                 </FormProvider>
                 <Countdown />
                 {activeCycle ?
-                    <StopCountDownButton onClick={interruptCyce} type="button">
+                    <StopCountDownButton onClick={interruptCurrentCycle} type="button">
                         <HandPalm size={24} />
                         Interroper
                     </StopCountDownButton>
