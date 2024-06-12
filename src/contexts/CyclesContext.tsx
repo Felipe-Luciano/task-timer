@@ -15,9 +15,8 @@ export interface CreateNewCycleData {
 interface CycleContextData {
     cycles: Cycle[]
     activeCycle: Cycle | undefined
-    amountSecondsPassed: number
-    finishedCurrentCycle: () => void
-    updateSecondsPassed: (secondsPassed: number) => void
+    minutes: string
+    seconds: string
     createNewCycle: (data: CreateNewCycleData) => void
     interruptCurrentCycle: () => void
 }
@@ -62,14 +61,6 @@ export function CyclesContext({ children }: CyclesContextProp) {
         localStorage.setItem('@task-timer:cycles-state-1.0.0', stateAsJSON)
     }, [cyclesState])
 
-    function finishedCurrentCycle() {
-        dispatch(finishedAnActivityCycleAction())
-    }
-
-    function updateSecondsPassed(secondsPassed: number) {
-        setAmountSecondsPassed(secondsPassed)
-    }
-
     function createNewCycle(data: CreateNewCycleData) {
         const id = String(new Date().getTime())
 
@@ -89,13 +80,51 @@ export function CyclesContext({ children }: CyclesContextProp) {
         dispatch(interruptCurrentCycleAction())
     }
 
+    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+    
+    useEffect(() => {
+        let interval: number 
+        if(activeCycle) {
+            interval = setInterval(() => {
+                const secondsDifference = differenceInSeconds(new Date(), activeCycle.startDate)
+                
+                if(secondsDifference >= totalSeconds) {
+                    dispatch(finishedAnActivityCycleAction())
+                    setAmountSecondsPassed(totalSeconds)
+                    clearInterval(interval)
+                } else {
+                    setAmountSecondsPassed(secondsDifference)
+                }
+            }, 1000)
+        }
+
+        return (() => {
+            clearInterval(interval)
+        })
+    }, [
+            activeCycle, 
+            totalSeconds, 
+        ]
+    )
+
+    const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+    const minutesAmount = Math.floor(currentSeconds/60)
+    const secondsAmount = currentSeconds % 60 
+
+    const minutes = String(minutesAmount).padStart(2, '0')
+    const seconds = String(secondsAmount).padStart(2, '0')
+
+    useEffect(() => {
+        document.title = `Task timer - ${minutes}:${seconds}`
+    }, [minutes, seconds])
+
     return (
         <CycleContext.Provider value={{
             cycles,
             activeCycle,
-            amountSecondsPassed,
-            finishedCurrentCycle,
-            updateSecondsPassed,
+            minutes,
+            seconds,
             createNewCycle,
             interruptCurrentCycle
         }}>
